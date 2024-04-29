@@ -92,8 +92,6 @@ class BackgroundImageListData {
 
             game.actors.get(key)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, keyDeletion);
         }
-
-        delete images[0];
     }
 }
 
@@ -102,7 +100,7 @@ class BackgroundImagePickerConfig extends FilePicker {
 
     constructor() {
         super();
-        //this.extensions = ['webp', 'png', 'jpg'];
+        //this.type = ['webp', 'png', 'jpg'];
     }
 
     static get defaultOptions() {
@@ -111,7 +109,7 @@ class BackgroundImagePickerConfig extends FilePicker {
         const overrides = {
             id: 'backgroundimage-picker',
             title: 'Background Image Picker',
-            actorId: null
+            userId: game.userId,
         };
     
         const mergedOptions = foundry.utils.mergeObject(defaults, overrides);
@@ -119,16 +117,16 @@ class BackgroundImagePickerConfig extends FilePicker {
         return mergedOptions;
     }
 
+    getData(options = {}) {
+        return super.getData().object; // the object from the constructor is where we are storing the data
+    }
+
     setActorId(id) {
         this.actorId = id;
     }
 
-    render(force, options) {
-        //this.actorId = options?.actorId;
-        super.render(force);
-    }
-
     async _handleButtonClick(event) {
+        console.log(this.template);
         const newImg = {path: this.request};
         console.log(newImg);
         
@@ -150,23 +148,19 @@ class BackgroundImagePickerConfig extends FilePicker {
     }
     
     activateListeners(html) {
+        console.log(html);
         super.activateListeners(html);
-        console.log(this);
 
         html.on('click', ".filepicker-footer", this._handleButtonClick.bind(this));
-        //html.on('click', ".filepicker-footer", (event) => {console.log("clicked");});
     }
+
+    async _updateObject(event, formData) {
+        return;
+      }
 }
 
 Hooks.once('init', () => {
     BackgroundImageList.initialize();
-});
-
-/**
- * Register our module's debug flag with developer mode's custom hook
- */
-Hooks.once('devModeReady', ({ registerPackageDebugFlag }) => {
-    registerPackageDebugFlag(BackgroundImageList.ID);
 });
 
 Hooks.on('renderActorSheet5eCharacter2', (app, html, data) => {
@@ -174,7 +168,7 @@ Hooks.on('renderActorSheet5eCharacter2', (app, html, data) => {
     // create localized tooltip
     const tooltip = game.i18n.localize('CHANGE-IMAGE.button-title');
 
-    // create a new header element if it doesn't already exist
+    // create a new header icon if it doesn't already exist
     const elementExists = document.getElementById("background-image-button");
     if (!elementExists) {
         const icon = document.createElement("a");
@@ -183,9 +177,9 @@ Hooks.on('renderActorSheet5eCharacter2', (app, html, data) => {
         class_list.add("control");
         class_list.add("background-image-button");
         icon.setAttribute('data-tooltip', tooltip);
-        icon.setAttribute('data-type', "image");
         icon.setAttribute('data-actor-id', actorId);
-        icon.id = "background-image-button";
+        icon.setAttribute('aria-label', tooltip);
+        //icon.id = "background-image-button";
         // set the inner html to be a font awesome icon
         icon.innerHTML = `<i class='fas fa-image' style='color:white'></i>`;
 
