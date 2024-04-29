@@ -22,64 +22,63 @@ class BackgroundImageList {
 
     static initialize() {
         this.imagePicker = new BackgroundImagePickerConfig();
-    }
+    };
 }
 
 class BackgroundImageListData {
     /**
-   * get all toDos for all users indexed by the todo's id
+   * get all images for all actors indexed by the id
    */
     static get allBackgroundImages() {
-        const allBackgroundImages = game.users.reduce((accumulator, user) => {
-            const userImages = this.getBackgroundImageForUser(user.id);
+        const allBackgroundImages = game.actors.reduce((accumulator, actors) => {
+            const actorImages = this.getBackgroundImageForActor(actors.id);
 
             return {
                 ...accumulator,
-                ...userImages
+                ...actorImages
             }
         }, {});
 
         return allBackgroundImages;
     }
     
-    static getBackgroundImageForUser(userId) {
-        return game.users.get(userId)?.getFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE);
+    static getBackgroundImageForActor(actorId) {
+        return game.actors.get(actorId)?.getFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE);
     }
     
-    static createBackgroundImage(userId, backgroundImageData) {
+    static createBackgroundImage(actorId, backgroundImageData) {
         // generate a random id for this new background image and populate the userId
         const newBackgroundImage = {
             ...backgroundImageData,
-            userId,
         };
     
         // construct the update to insert the new background image
         const newBackgroundImages = {
-          [newBackgroundImage.userId]: newBackgroundImage
+          [actorId]: newBackgroundImage
         };
     
         // update the database with the new images
-        return game.users.get(userId)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, newBackgroundImages);
+        return game.actors.get(actorId)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, newBackgroundImages);
     }
 
-    static updateBackgroundImage(userId, updateData) {
+    static updateBackgroundImage(actorId, updateData) {
         // construct the update to send
         const update = {
-          [userId]: updateData
+          [actorId]: updateData
         };
     
         // update the database with the updated image
-        return game.users.get(userId)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, update);
+        return game.actors.get(actorId)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, update);
     }
 
-    static deleteBackgroundImage(userId) {
+    static deleteBackgroundImage(actorId) {
         // Foundry specific syntax required to delete a key from a persisted object in the database
         const keyDeletion = {
-          [`-=${userId}`]: null
+          [`-=${actorId}`]: null
         };
     
         // update the database with the updated image
-        return game.users.get(userId)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, keyDeletion);
+        return game.actors.get(actorId)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, keyDeletion);
     }
 
     static _deleteAllImages() {
@@ -91,12 +90,16 @@ class BackgroundImageListData {
                 [`-=${key}`]: null
             };
 
-            game.users.get(key)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, keyDeletion);
+            game.actors.get(key)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, keyDeletion);
         }
+
+        delete images[0];
     }
 }
 
 class BackgroundImagePickerConfig extends FilePicker {
+    static actorId = null;
+
     constructor() {
         super();
         //this.extensions = ['webp', 'png', 'jpg'];
@@ -108,7 +111,7 @@ class BackgroundImagePickerConfig extends FilePicker {
         const overrides = {
             id: 'backgroundimage-picker',
             title: 'Background Image Picker',
-            userId: game.userId
+            actorId: null
         };
     
         const mergedOptions = foundry.utils.mergeObject(defaults, overrides);
@@ -116,30 +119,31 @@ class BackgroundImagePickerConfig extends FilePicker {
         return mergedOptions;
     }
 
-    async _updateObject(event, formData) {
-        // normal updateObject stuff
-      
-        this.render(); // rerenders the FormApp with the new data.
+    setActorId(id) {
+        this.actorId = id;
+    }
+
+    render(force, options) {
+        //this.actorId = options?.actorId;
+        super.render(force);
     }
 
     async _handleButtonClick(event) {
-        console.log(this);
-        console.log(event);
-        const newImg = `{path: ${this.request}}`;
+        const newImg = {path: this.request};
         console.log(newImg);
-
+        
         let background;
         try {
-            background = BackgroundImageListData.getBackgroundImageForUser(game.userId)[game.userId];
+            background = BackgroundImageListData.getBackgroundImageForActor(this.actorId)[this.actorId];
         } catch (error) {
             background = null;
         }
         if (background) {
             console.log("update image");
-            await BackgroundImageListData.updateBackgroundImage(game.userId, newImg);
+            await BackgroundImageListData.updateBackgroundImage(this.actorId, newImg);
         } else {
             console.log("create image");
-            await BackgroundImageListData.createBackgroundImage(game.userId, newImg);
+            await BackgroundImageListData.createBackgroundImage(this.actorId, newImg);
         }
 
         //Hooks.call('renderActorSheet5eCharacter2', (null, event, null));
@@ -148,11 +152,8 @@ class BackgroundImagePickerConfig extends FilePicker {
     activateListeners(html) {
         super.activateListeners(html);
         console.log(this);
-        console.log(html);
 
-        html.on('click', ".file", (event) => {console.log(this);});
-
-        html.on('click', ".filepicker-footer", this._handleButtonClick.bind(this, html));
+        html.on('click', ".filepicker-footer", this._handleButtonClick.bind(this));
         //html.on('click', ".filepicker-footer", (event) => {console.log("clicked");});
     }
 }
@@ -169,28 +170,30 @@ Hooks.once('devModeReady', ({ registerPackageDebugFlag }) => {
 });
 
 Hooks.on('renderActorSheet5eCharacter2', (app, html, data) => {
+    const actorId = app.object._id;
     // create localized tooltip
     const tooltip = game.i18n.localize('CHANGE-IMAGE.button-title');
 
     // create a new header element if it doesn't already exist
-    var elementExists = document.getElementById("background-image-icon-button");
+    const elementExists = document.getElementById("background-image-button");
     if (!elementExists) {
         const icon = document.createElement("a");
         const class_list = icon.classList;
         class_list.add("header-button");
         class_list.add("control");
-        class_list.add("background-image-icon-button");
+        class_list.add("background-image-button");
         icon.setAttribute('data-tooltip', tooltip);
         icon.setAttribute('data-type', "image");
-        //icon.id = "background-image-icon-button";
+        icon.setAttribute('data-actor-id', actorId);
+        icon.id = "background-image-button";
         // set the inner html to be a font awesome icon
         icon.innerHTML = `<i class='fas fa-image' style='color:white'></i>`;
 
         const header = document.querySelector(".window-header");
         header.insertBefore(icon, header.childNodes[3]);
-        html.on('click', '.background-image-icon-button', (event) => {
-            const userId = game.userId;
-            BackgroundImageList.imagePicker.render(true);
+        html.on('click', '.background-image-button', (event) => {
+            BackgroundImageList.imagePicker.setActorId(actorId);
+            BackgroundImageList.imagePicker.render(true, {actorId});
         });
     }
 
@@ -199,12 +202,11 @@ Hooks.on('renderActorSheet5eCharacter2', (app, html, data) => {
     newImg.classList.add("background-img");
     let img;
     try {
-        img = BackgroundImageListData.getBackgroundImageForUser(game.userId)[game.userId]["path"];
+        img = BackgroundImageListData.getBackgroundImageForActor(actorId)[actorId]["path"];
     } catch (error) {
         img = null;
     }
     if (img) {
-        console.log(img)
         newImg.style.setProperty('--data-url', `url(../../../${img})`);
     } else {
         newImg.style.setProperty('--data-url', `url(../../../systems/dnd5e/ui/official/banner-character-dark.webp)`);
