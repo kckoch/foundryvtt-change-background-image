@@ -40,7 +40,7 @@ class BackgroundImageListData {
   
     // get the background image for a specific actor
     static getBackgroundImageForUser(actorId) {
-        return game.actors.get(actorId)?.getFlag(BackroundImageList.ID, BackroundImageList.FLAGS.BACKGROUNDIMAGE);
+        return game.actors.get(actorId)?.getFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE);
     }
   
     // create a new background image for a given actor
@@ -57,7 +57,7 @@ class BackgroundImageListData {
         }
     
         // update the database with the new ToDos
-        return game.actors.get(actorId)?.setFlag(BackroundImageList.ID, BackroundImageList.FLAGS.BACKGROUNDIMAGE, newBackgroundImages);
+        return game.actors.get(actorId)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, newBackgroundImages);
     }
   
     // update a specific actor background image by id with the provided updateData
@@ -70,7 +70,7 @@ class BackgroundImageListData {
         }
 
         // update the database with the updated ToDo list
-        return game.actors.get(relevantActor.actorId)?.setFlag(BackroundImageList.ID, BackroundImageList.FLAGS.BACKGROUNDIMAGE, update);
+        return game.actors.get(relevantActor.actorId)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, update);
     }
   
     // delete a specific background image by id
@@ -83,7 +83,7 @@ class BackgroundImageListData {
         }
 
         // update the database with the updated ToDo list
-        return game.actors.get(relevantActor.actorId)?.setFlag(BackroundImageList.ID, BackroundImageList.FLAGS.BACKGROUNDIMAGE, keyDeletion);
+        return game.actors.get(relevantActor.actorId)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, keyDeletion);
     }
 }
 
@@ -184,5 +184,4 @@ Hooks.on("renderActorSheet5eCharacter2", (app, html, data) => {
 Hooks.on("getActorSheet5eCharacter2HeaderButtons", (app, buttons) => {
     buttons[1] = {"label": "Change Background Image", "icon": "fas fa-image", 
         "class": "background-image-button", "onclick": (event) => {}};
-    console.log(buttons);
 });
