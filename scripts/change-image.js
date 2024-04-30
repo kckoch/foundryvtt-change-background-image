@@ -210,7 +210,6 @@ Hooks.on("renderActorSheet5eCharacter2", (app, html, data) => {
 });
 
 Hooks.on("getActorDirectoryEntryContext", (html, entries) => {
-    console.log("HERE!");
     new_entry = {name: "Clear Background Art", icon:`<i class="fas fa-minus"></i>`, 
         callback: header => {
             const li = header.closest(".directory-item");
