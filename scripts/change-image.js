@@ -21,7 +21,7 @@ class BackgroundImageList {
         CHANGE_DEFAULT_IMAGE: 'change-default-img',
         DEFAULT_IMAGE: 'default-img'
     };
-
+0
     static initialize() {
         game.settings.register(this.ID, this.SETTINGS.INJECT_BUTTON, {
             name: `CHANGE-IMAGE.settings.${this.SETTINGS.INJECT_BUTTON}.Name`,
@@ -174,6 +174,16 @@ class BackgroundImagePicker extends FilePicker {
     }
 }
 
+/*class BackgroundContextMenuEntry extends ContextMenuEntry {
+    constructor() {
+        super();
+        this.name = "Clear Character Art";
+        this.icon = `<i class="fas fa-minus"></i>`;
+    }
+}*/
+
+CONFIG.debug.hooks = true;
+
 Hooks.on("renderActorSheet5eCharacter2", (app, html, data) => {
     if (!game.settings.get(BackgroundImageList.ID, BackgroundImageList.SETTINGS.INJECT_BUTTON)) {
         return;
@@ -207,6 +217,17 @@ Hooks.on("renderActorSheet5eCharacter2", (app, html, data) => {
     } else {
         newImg.style.setProperty('--data-url', `url(../../../systems/dnd5e/ui/official/banner-character-dark.webp)`);
     }
+});
+
+Hooks.on("getActorDirectoryEntryContext", (html, entries) => {
+    console.log("HERE!");
+    new_entry = {name: "Clear Background Art", icon:`<i class="fas fa-minus"></i>`, 
+        callback: header => {
+            const li = header.closest(".directory-item");
+            const id = li.data("entryId");
+            BackgroundImageListData.deleteBackgroundImage(id);
+          }};
+    entries[entries.length] = new_entry;
 });
 
 Hooks.on("getActorSheet5eCharacter2HeaderButtons", (app, buttons) => {
