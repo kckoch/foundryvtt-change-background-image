@@ -4,7 +4,8 @@
     "description": "A simple module created as a demo for working in the Foundry Virtual Tabletop framework.",
     "authors": [
         {
-        "name": "kaybird"
+          "name": "kaybird",
+          "discord": "kaybird"
         }
     ],
     "version": "1.0.0",

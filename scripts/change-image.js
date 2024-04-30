@@ -27,7 +27,7 @@ class BackgroundImageListData {
    */
     static get allBackgroundImages() {
         const allBackgroundImages = game.actors.reduce((accumulator, actor) => {
-            const actorImage = this.getBackgroundImageForUser(actor.id);
+            const actorImage = this.getBackgroundImageForActor(actor.id);
       
             return {
               ...accumulator,
@@ -39,7 +39,7 @@ class BackgroundImageListData {
     }
   
     // get the background image for a specific actor
-    static getBackgroundImageForUser(actorId) {
+    static getBackgroundImageForActor(actorId) {
         return game.actors.get(actorId)?.getFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE);
     }
   
@@ -89,6 +89,7 @@ class BackgroundImageListData {
 
 class BackgroundImagePickerConfig extends FilePicker {
     static actorId = null;
+    static imgPath = null;
 
     constructor() {
         super();
@@ -113,13 +114,13 @@ class BackgroundImagePickerConfig extends FilePicker {
         this.actorId = id;
     }
 
+    setButton(html) {
+        this.button = html;
+    }
+
     async _handleButtonClick(event) {
-        const res = await this.getData();
-        console.log(res);
-        console.log(event);
-        if (this.request) {
-            const newImg = {path: this.request};
-            console.log(newImg);
+        if (event) {
+            const newImg = {path: event};
             
             let background;
             try {
@@ -128,30 +129,15 @@ class BackgroundImagePickerConfig extends FilePicker {
                 background = null;
             }
             if (background) {
-                console.log("update image");
                 await BackgroundImageListData.updateBackgroundImage(this.actorId, newImg);
             } else {
-                console.log("create image");
                 await BackgroundImageListData.createBackgroundImage(this.actorId, newImg);
             }
         } else {
             console.log("request was null");
         }
     }
-    
-    activateListeners(html) {
-        super.activateListeners(html);
-
-        html.on('click', ".filepicker-footer", this._handleButtonClick.bind(this));
-    }
-
-    async _updateObject(event, formData) {
-        return;
-    }
 }
-
-CONFIG.debug.hooks = !CONFIG.debug.hooks
-console.warn("Set Hook Debugging to", CONFIG.debug.hooks)
 
 Hooks.once('init', () => {
     BackgroundImageList.initialize();
@@ -159,8 +145,11 @@ Hooks.once('init', () => {
 
 Hooks.on("renderActorSheet5eCharacter2", (app, html, data) => {
     const actorId = app.object._id;
+    const but = document.querySelector(".background-image-button");
     
     html.on('click', '.background-image-button', (event) => {
+        BackgroundImageList.imagePicker.button = but;
+        BackgroundImageList.imagePicker.callback = BackgroundImageList.imagePicker._handleButtonClick;
         BackgroundImageList.imagePicker.setActorId(actorId);
         BackgroundImageList.imagePicker.render(true, {actorId});
     });
