@@ -27,5 +27,6 @@
     "styles": [
       "styles/change-image.css"
     ],
-    "manifest": "https://raw.githubusercontent.com/kckoch/foundryvtt-change-background-image/main/module.json"
+    "manifest": "https://raw.githubusercontent.com/kckoch/foundryvtt-change-background-image/releases/latest/download/module.son",
+    "download": "https://github.com/kckoch/foundryvtt-change-background-image/releases/latest/download/module.zip"
 }
