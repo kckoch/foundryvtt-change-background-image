@@ -15,10 +15,6 @@ class BackgroundImageList {
     static FLAGS = {
       BACKGROUNDIMAGE: 'background-image'
     };
-
-    static initialize() {
-        this.imagePicker = new BackgroundImagePickerConfig();
-    };
 }
 
 class BackgroundImageListData {
@@ -87,7 +83,7 @@ class BackgroundImageListData {
     }
 }
 
-class BackgroundImagePickerConfig extends FilePicker {
+class BackgroundImagePicker extends FilePicker {
     static actorId = null;
     static imgPath = null;
 
@@ -139,23 +135,21 @@ class BackgroundImagePickerConfig extends FilePicker {
     }
 }
 
-Hooks.once('init', () => {
-    BackgroundImageList.initialize();
-});
-
 Hooks.on("renderActorSheet5eCharacter2", (app, html, data) => {
-    const actorId = app.object._id;
-    const but = document.querySelector(".background-image-button");
+    const actorId = data.actor._id;
+    const actorHTML = document.getElementById(`ActorSheet5eCharacter2-Actor-${actorId}`);
+    const but = actorHTML.querySelector(".background-image-button");
     
     html.on('click', '.background-image-button', (event) => {
-        BackgroundImageList.imagePicker.button = but;
-        BackgroundImageList.imagePicker.callback = BackgroundImageList.imagePicker._handleButtonClick;
-        BackgroundImageList.imagePicker.setActorId(actorId);
-        BackgroundImageList.imagePicker.render(true, {actorId});
+        const picker = new BackgroundImagePicker();
+        picker.setActorId(actorId);
+        picker.button = but;
+        picker.callback = picker._handleButtonClick;
+        picker.render(true, {actorId});
     });
 
     // Render the background image
-    const newImg = document.querySelector(".window-content");
+    const newImg = actorHTML.querySelector(".window-content");
     newImg.classList.add("background-img");
     let img;
     try {
