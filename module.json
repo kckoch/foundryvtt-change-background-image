@@ -1,0 +1,32 @@
+{
+    "id": "background-images",
+    "title": "Background Image Customization",
+    "description": "A simple module created as a demo for working in the Foundry Virtual Tabletop framework.",
+    "authors": [
+        {
+          "name": "kaybird",
+          "discord": "kaybird"
+        }
+    ],
+    "version": "1.0.0",
+    "compatibility": {
+        "minimum": "11",
+        "verified": "11"
+    },
+    "system": ["dnd5e"],
+    "scripts": [
+      "scripts/change-image.js"
+    ],
+    "languages": [
+      {
+        "lang": "en",
+        "name": "English",
+        "path": "lang/en.json"
+      }
+    ],
+    "styles": [
+      "styles/change-image.css"
+    ],
+    "manifest": "https://raw.githubusercontent.com/kckoch/foundryvtt-change-background-image/main/module.json",
+    "download": ""
+}

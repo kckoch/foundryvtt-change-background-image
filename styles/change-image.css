@@ -1,0 +1,7 @@
+.dnd5e-theme-dark .dnd5e2.sheet.actor.character .window-content::before, .dnd5e2.sheet.actor.character.dnd5e-theme-dark .window-content::before {
+    content: '';
+    background: var(--data-url);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: top center;
+}

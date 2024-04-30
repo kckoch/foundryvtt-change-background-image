@@ -1,0 +1,19 @@
+{
+    "CHANGE-IMAGE": {
+        "button-title": "Change Background Image",
+        "settings": {
+            "inject-button": {
+              "Name": "Display image change button?",
+              "Hint": "Controls whether or not players can change the background of a character sheet."
+            },
+            "change-default-img": {
+                "Name": "Default image flag",
+                "Hint": "Allow a custom default background"
+            },
+            "default-img": {
+                "Name": "Default image",
+                "Hint": "Set the custom image"
+            }
+        }
+    }
+}
