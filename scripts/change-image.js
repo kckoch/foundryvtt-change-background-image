@@ -145,7 +145,7 @@ Hooks.on("renderActorSheet5eCharacter2", (app, html, data) => {
         picker.setActorId(actorId);
         picker.button = but;
         picker.callback = picker._handleButtonClick;
-        picker.render(true, {actorId});
+        picker.render(true, {renderData: actorId});
     });
 
     // Render the background image
