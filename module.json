@@ -13,6 +13,7 @@
         "minimum": "11",
         "verified": "11"
     },
+    "system": ["dnd5e"],
     "scripts": [
       "scripts/change-image.js"
     ],
@@ -25,5 +26,6 @@
     ],
     "styles": [
       "styles/change-image.css"
-    ]
+    ],
+    "manifest": "https://raw.githubusercontent.com/kckoch/foundryvtt-change-background-image/main/module.json"
 }
