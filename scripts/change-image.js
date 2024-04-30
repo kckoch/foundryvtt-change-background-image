@@ -15,10 +15,6 @@ class BackgroundImageList {
     static FLAGS = {
       BACKGROUNDIMAGE: 'background-image'
     };
-    
-    static TEMPLATES = {
-      BACKGROUNDIMAGELIST: `modules/${this.ID}/templates/background-image.hbs`
-    };
 
     static initialize() {
         this.imagePicker = new BackgroundImagePickerConfig();
@@ -30,68 +26,64 @@ class BackgroundImageListData {
    * get all images for all actors indexed by the id
    */
     static get allBackgroundImages() {
-        const allBackgroundImages = game.actors.reduce((accumulator, actors) => {
-            const actorImages = this.getBackgroundImageForActor(actors.id);
-
+        const allBackgroundImages = game.actors.reduce((accumulator, actor) => {
+            const actorImage = this.getBackgroundImageForUser(actor.id);
+      
             return {
-                ...accumulator,
-                ...actorImages
+              ...accumulator,
+              ...actorImage
             }
-        }, {});
-
-        return allBackgroundImages;
+          }, {});
+      
+          return allBackgroundImages;
     }
-    
-    static getBackgroundImageForActor(actorId) {
-        return game.actors.get(actorId)?.getFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE);
+  
+    // get the background image for a specific actor
+    static getBackgroundImageForUser(actorId) {
+        return game.actors.get(actorId)?.getFlag(BackroundImageList.ID, BackroundImageList.FLAGS.BACKGROUNDIMAGE);
     }
-    
+  
+    // create a new background image for a given actor
     static createBackgroundImage(actorId, backgroundImageData) {
-        // generate a random id for this new background image and populate the userId
+        // generate a random id for this new ToDo and populate the userId
         const newBackgroundImage = {
+            actorId,
             ...backgroundImageData,
-        };
+        }
     
-        // construct the update to insert the new background image
+        // construct the update to insert the new ToDo
         const newBackgroundImages = {
-          [actorId]: newBackgroundImage
-        };
+            [actorId]: newBackgroundImage
+        }
     
-        // update the database with the new images
-        return game.actors.get(actorId)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, newBackgroundImages);
+        // update the database with the new ToDos
+        return game.actors.get(actorId)?.setFlag(BackroundImageList.ID, BackroundImageList.FLAGS.BACKGROUNDIMAGE, newBackgroundImages);
     }
-
+  
+    // update a specific actor background image by id with the provided updateData
     static updateBackgroundImage(actorId, updateData) {
+        const relevantActor = this.allBackgroundImages[actorId];
+
         // construct the update to send
         const update = {
-          [actorId]: updateData
-        };
-    
-        // update the database with the updated image
-        return game.actors.get(actorId)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, update);
-    }
+            [actorId]: updateData
+        }
 
+        // update the database with the updated ToDo list
+        return game.actors.get(relevantActor.actorId)?.setFlag(BackroundImageList.ID, BackroundImageList.FLAGS.BACKGROUNDIMAGE, update);
+    }
+  
+    // delete a specific background image by id
     static deleteBackgroundImage(actorId) {
+        const relevantActor = this.allBackgroundImages[actorId];
+
         // Foundry specific syntax required to delete a key from a persisted object in the database
         const keyDeletion = {
-          [`-=${actorId}`]: null
-        };
-    
-        // update the database with the updated image
-        return game.actors.get(actorId)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, keyDeletion);
-    }
-
-    static _deleteAllImages() {
-        const images = this.allBackgroundImages;
-    
-        for (var key in images) {
-            // Foundry specific syntax required to delete a key from a persisted object in the database
-            const keyDeletion = {
-                [`-=${key}`]: null
-            };
-
-            game.actors.get(key)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, keyDeletion);
+        [`-=${actorId}`]: null
         }
+
+        // update the database with the updated ToDo list
+        return game.actors.get(relevantActor.actorId)?.setFlag(BackroundImageList.ID, BackroundImageList.FLAGS.BACKGROUNDIMAGE, keyDeletion);
     }
 }
 
@@ -100,7 +92,7 @@ class BackgroundImagePickerConfig extends FilePicker {
 
     constructor() {
         super();
-        //this.type = ['webp', 'png', 'jpg'];
+        this.extensions = ['.webp', '.png', '.jpg'];
     }
 
     static get defaultOptions() {
@@ -117,38 +109,37 @@ class BackgroundImagePickerConfig extends FilePicker {
         return mergedOptions;
     }
 
-    getData(options = {}) {
-        return super.getData().object; // the object from the constructor is where we are storing the data
-    }
-
     setActorId(id) {
         this.actorId = id;
     }
 
     async _handleButtonClick(event) {
-        console.log(this.template);
-        const newImg = {path: this.request};
-        console.log(newImg);
-        
-        let background;
-        try {
-            background = BackgroundImageListData.getBackgroundImageForActor(this.actorId)[this.actorId];
-        } catch (error) {
-            background = null;
-        }
-        if (background) {
-            console.log("update image");
-            await BackgroundImageListData.updateBackgroundImage(this.actorId, newImg);
+        const res = await this.getData();
+        console.log(res);
+        console.log(event);
+        if (this.request) {
+            const newImg = {path: this.request};
+            console.log(newImg);
+            
+            let background;
+            try {
+                background = BackgroundImageListData.getBackgroundImageForActor(this.actorId)[this.actorId];
+            } catch (error) {
+                background = null;
+            }
+            if (background) {
+                console.log("update image");
+                await BackgroundImageListData.updateBackgroundImage(this.actorId, newImg);
+            } else {
+                console.log("create image");
+                await BackgroundImageListData.createBackgroundImage(this.actorId, newImg);
+            }
         } else {
-            console.log("create image");
-            await BackgroundImageListData.createBackgroundImage(this.actorId, newImg);
+            console.log("request was null");
         }
-
-        //Hooks.call('renderActorSheet5eCharacter2', (null, event, null));
     }
     
     activateListeners(html) {
-        console.log(html);
         super.activateListeners(html);
 
         html.on('click', ".filepicker-footer", this._handleButtonClick.bind(this));
@@ -156,40 +147,23 @@ class BackgroundImagePickerConfig extends FilePicker {
 
     async _updateObject(event, formData) {
         return;
-      }
+    }
 }
+
+CONFIG.debug.hooks = !CONFIG.debug.hooks
+console.warn("Set Hook Debugging to", CONFIG.debug.hooks)
 
 Hooks.once('init', () => {
     BackgroundImageList.initialize();
 });
 
-Hooks.on('renderActorSheet5eCharacter2', (app, html, data) => {
+Hooks.on("renderActorSheet5eCharacter2", (app, html, data) => {
     const actorId = app.object._id;
-    // create localized tooltip
-    const tooltip = game.i18n.localize('CHANGE-IMAGE.button-title');
-
-    // create a new header icon if it doesn't already exist
-    const elementExists = document.getElementById("background-image-button");
-    if (!elementExists) {
-        const icon = document.createElement("a");
-        const class_list = icon.classList;
-        class_list.add("header-button");
-        class_list.add("control");
-        class_list.add("background-image-button");
-        icon.setAttribute('data-tooltip', tooltip);
-        icon.setAttribute('data-actor-id', actorId);
-        icon.setAttribute('aria-label', tooltip);
-        //icon.id = "background-image-button";
-        // set the inner html to be a font awesome icon
-        icon.innerHTML = `<i class='fas fa-image' style='color:white'></i>`;
-
-        const header = document.querySelector(".window-header");
-        header.insertBefore(icon, header.childNodes[3]);
-        html.on('click', '.background-image-button', (event) => {
-            BackgroundImageList.imagePicker.setActorId(actorId);
-            BackgroundImageList.imagePicker.render(true, {actorId});
-        });
-    }
+    
+    html.on('click', '.background-image-button', (event) => {
+        BackgroundImageList.imagePicker.setActorId(actorId);
+        BackgroundImageList.imagePicker.render(true, {actorId});
+    });
 
     // Render the background image
     const newImg = document.querySelector(".window-content");
@@ -205,4 +179,10 @@ Hooks.on('renderActorSheet5eCharacter2', (app, html, data) => {
     } else {
         newImg.style.setProperty('--data-url', `url(../../../systems/dnd5e/ui/official/banner-character-dark.webp)`);
     }
+});
+
+Hooks.on("getActorSheet5eCharacter2HeaderButtons", (app, buttons) => {
+    buttons[1] = {"label": "Change Background Image", "icon": "fas fa-image", 
+        "class": "background-image-button", "onclick": (event) => {}};
+    console.log(buttons);
 });
