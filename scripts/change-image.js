@@ -174,16 +174,6 @@ class BackgroundImagePicker extends FilePicker {
     }
 }
 
-/*class BackgroundContextMenuEntry extends ContextMenuEntry {
-    constructor() {
-        super();
-        this.name = "Clear Character Art";
-        this.icon = `<i class="fas fa-minus"></i>`;
-    }
-}*/
-
-CONFIG.debug.hooks = true;
-
 Hooks.on("renderActorSheet5eCharacter2", (app, html, data) => {
     if (!game.settings.get(BackgroundImageList.ID, BackgroundImageList.SETTINGS.INJECT_BUTTON)) {
         return;
