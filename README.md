@@ -38,8 +38,8 @@ Screenshots:
 
 8. Disallowing players to set custom images.
     
-![](https://github.com/kckoch/foundryvtt-change-background-image/blob/0e55eda4f25588284587d5123568237d2c4e4c4f/images/BI%208.png)
+![](https://github.com/kckoch/foundryvtt-change-background-image/blob/c000e0470ee1283a6435950f8785f31dcb7ea62d/images/BI%208.png)
 
 9. The character sheet without the image icon.
     
-![](https://github.com/kckoch/foundryvtt-change-background-image/blob/0e55eda4f25588284587d5123568237d2c4e4c4f/images/BI%209.png)
+![](https://github.com/kckoch/foundryvtt-change-background-image/blob/c000e0470ee1283a6435950f8785f31dcb7ea62d/images/BI%209.png)
