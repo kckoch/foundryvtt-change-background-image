@@ -29,8 +29,8 @@ class BackgroundImageList {
             type: Boolean,
             scope: 'world',
             config: true,
+            requiresReload: true,
             hint: `CHANGE-IMAGE.settings.${this.SETTINGS.INJECT_BUTTON}.Hint`,
-            onChange: () => ui.actors.render(),
             restricted: true
         });
         game.settings.register(this.ID, this.SETTINGS.CHANGE_DEFAULT_IMAGE, {
@@ -39,8 +39,8 @@ class BackgroundImageList {
             type: Boolean,
             scope: 'world',
             config: true,
+            requiresReload: true,
             hint: `CHANGE-IMAGE.settings.${this.SETTINGS.CHANGE_DEFAULT_IMAGE}.Hint`,
-            onChange: () => ui.actors.render(),
             restricted: true
         });
         game.settings.register(this.ID, this.SETTINGS.DEFAULT_IMAGE, {
@@ -49,8 +49,8 @@ class BackgroundImageList {
             filePicker: true,
             scope: 'world',
             config: true,
+            requiresReload: true,
             hint: `CHANGE-IMAGE.settings.${this.SETTINGS.DEFAULT_IMAGE}.Hint`,
-            onChange: () => ui.actors.render(),
             restricted: true
         });
     }
@@ -104,7 +104,7 @@ class BackgroundImageListData {
             [actorId]: updateData
         }
 
-        // update the database with the updated ToDo list
+        // update the database with the updated image
         return game.actors.get(relevantActor.actorId)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, update);
     }
   
@@ -117,8 +117,12 @@ class BackgroundImageListData {
         [`-=${actorId}`]: null
         }
 
-        // update the database with the updated ToDo list
-        return game.actors.get(relevantActor.actorId)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, keyDeletion);
+        // remove the image from the db
+        try {
+            return game.actors.get(relevantActor.actorId)?.setFlag(BackgroundImageList.ID, BackgroundImageList.FLAGS.BACKGROUNDIMAGE, keyDeletion);
+        } catch (error) {
+            return;
+        }
     }
 }
 
@@ -175,21 +179,21 @@ class BackgroundImagePicker extends FilePicker {
 }
 
 Hooks.on("renderActorSheet5eCharacter2", (app, html, data) => {
-    if (!game.settings.get(BackgroundImageList.ID, BackgroundImageList.SETTINGS.INJECT_BUTTON)) {
-        return;
-    }
-    
     const actorId = data.actor._id;
     const actorHTML = document.getElementById(`ActorSheet5eCharacter2-Actor-${actorId}`);
-    const but = actorHTML.querySelector(".background-image-button");
-    
-    html.on('click', '.background-image-button', (event) => {
-        const picker = new BackgroundImagePicker();
-        picker.setActorId(actorId);
-        picker.button = but;
-        picker.callback = picker._handleButtonClick;
-        picker.render(true, {renderData: actorId});
-    });
+
+    //if the players can set a background image, render the button
+    if (game.settings.get(BackgroundImageList.ID, BackgroundImageList.SETTINGS.INJECT_BUTTON)) {
+        const but = actorHTML.querySelector(".background-image-button");
+        
+        html.on('click', '.background-image-button', (event) => {
+            const picker = new BackgroundImagePicker();
+            picker.setActorId(actorId);
+            picker.button = but;
+            picker.callback = picker._handleButtonClick;
+            picker.render(true, {renderData: actorId});
+        });
+    }
 
     // Render the background image
     const newImg = actorHTML.querySelector(".window-content");
@@ -210,18 +214,24 @@ Hooks.on("renderActorSheet5eCharacter2", (app, html, data) => {
 });
 
 Hooks.on("getActorDirectoryEntryContext", (html, entries) => {
-    new_entry = {name: "Clear Background Art", icon:`<i class="fas fa-minus"></i>`, 
-        callback: header => {
-            const li = header.closest(".directory-item");
-            const id = li.data("entryId");
-            BackgroundImageListData.deleteBackgroundImage(id);
-          }};
-    entries[entries.length] = new_entry;
+    //if the players can set a background image, allow them to remove it
+    if (game.settings.get(BackgroundImageList.ID, BackgroundImageList.SETTINGS.INJECT_BUTTON)) {
+        new_entry = {name: "Clear Background Art", icon:`<i class="fas fa-minus"></i>`, 
+            callback: header => {
+                const li = header.closest(".directory-item");
+                const id = li.data("entryId");
+                BackgroundImageListData.deleteBackgroundImage(id);
+            }};
+        entries[entries.length] = new_entry;
+    }
 });
 
 Hooks.on("getActorSheet5eCharacter2HeaderButtons", (app, buttons) => {
-    buttons[1] = {"label": "Change Background Image", "icon": "fas fa-image", 
-        "class": "background-image-button", "onclick": (event) => {}};
+    //if the players can set a background image, add a button to the header
+    if (game.settings.get(BackgroundImageList.ID, BackgroundImageList.SETTINGS.INJECT_BUTTON)) {
+        buttons[1] = {"label": "Change Background Image", "icon": "fas fa-image", 
+            "class": "background-image-button", "onclick": (event) => {}};
+    }
 });
 
 Hooks.on("init", (event) => {
